@@ -421,6 +421,130 @@ function App() {
             </div>
           </section>
         )}
+        {page === "/" && (
+          <>
+            <section className="section wrap mh-extra">
+              <div className="section-heading">
+                <span className="kicker">MAKTAB HUB 2.0</span>
+                <h2>Bir platforma, ko‘plab imkoniyatlar</h2>
+                <p>
+                  Maktabdagi kundalik hayotni yanada qulay va tartibli qilish
+                  uchun yaratilgan bo‘limlar.
+                </p>
+              </div>
+              <div className="mh-benefits">
+                {[
+                  [
+                    "⚡",
+                    "Tez va qulay",
+                    "Kerakli e’lon va ma’lumotlarni bir joyda ko‘ring.",
+                  ],
+                  [
+                    "🤝",
+                    "Hamkorlik",
+                    "Sinfdoshlar bilan bilim va foydali resurslar ulashing.",
+                  ],
+                  [
+                    "🛡️",
+                    "Mas’uliyatli hamjamiyat",
+                    "Shaxsiy ma’lumotlarni oshkor qilmasdan, hurmat bilan muloqot qiling.",
+                  ],
+                  [
+                    "📱",
+                    "Barcha qurilmalarda",
+                    "Telefon, planshet yoki kompyuterdan foydalaning.",
+                  ],
+                ].map((x) => (
+                  <article className="mh-benefit" key={x[1]}>
+                    <span>{x[0]}</span>
+                    <h3>{x[1]}</h3>
+                    <p>{x[2]}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+            <section className="section mh-gradient">
+              <div className="wrap mh-split">
+                <div>
+                  <span className="kicker">O‘QUVCHILAR UCHUN</span>
+                  <h2>Har bir qiziqishga o‘z makoni</h2>
+                  <p>
+                    Futbol, dasturlash, kitobxonlik yoki fanlar: yangi
+                    mashg‘ulotlarni toping va o‘zingizga mos hamjamiyatga
+                    qo‘shiling.
+                  </p>
+                  <a
+                    className="btn btn-primary"
+                    href="/platforma"
+                    onClick={(e) => navigate(e, "/platforma")}
+                  >
+                    Platformaga o‘tish →
+                  </a>
+                </div>
+                <div className="mh-showcase">
+                  <div>
+                    ⚽ <b>Sport va klublar</b>
+                    <small>Jamoa bo‘lib rivojlaning</small>
+                  </div>
+                  <div>
+                    💻 <b>Texnologiya</b>
+                    <small>Yangi ko‘nikmalarni o‘rganing</small>
+                  </div>
+                  <div>
+                    📖 <b>Kitoblar</b>
+                    <small>O‘qing va almashing</small>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section className="section wrap mh-faq">
+              <div className="section-heading">
+                <span className="kicker">KO‘P SO‘RALADIGAN SAVOLLAR</span>
+                <h2>Savollaringizga javoblar</h2>
+              </div>
+              {[
+                [
+                  "MaktabHub nima?",
+                  "Maktab hayotidagi e’lonlar, klublar, kitoblar va bilim almashishni birlashtiruvchi platforma.",
+                ],
+                [
+                  "Platformadan kim foydalanishi mumkin?",
+                  "Sayt maktab hamjamiyati uchun mo‘ljallangan. Ro‘yxatdan o‘tish va ma’lumot saqlash imkoniyati backend sozlamalariga bog‘liq.",
+                ],
+                [
+                  "E’lon qanday qo‘shiladi?",
+                  "Platforma sahifasiga o‘ting, kerakli bo‘limni tanlang va E’lon qo‘shish tugmasini bosing.",
+                ],
+                [
+                  "Taklifimni qanday yuboraman?",
+                  "Platformadagi anonim taklif bo‘limidan foydalanishingiz mumkin. Maxfiy ma’lumotlarni yubormang.",
+                ],
+              ].map((x) => (
+                <details key={x[0]}>
+                  <summary>{x[0]}</summary>
+                  <p>{x[1]}</p>
+                </details>
+              ))}
+            </section>
+            <section className="wrap mh-final-cta">
+              <div>
+                <span className="kicker">BIRGA RIVOJLANAMIZ</span>
+                <h2>Maktab hayotini yaxshilashga hissa qo‘shing</h2>
+                <p>
+                  G‘oyalaringizni baham ko‘ring va MaktabHub imkoniyatlarini
+                  sinab ko‘ring.
+                </p>
+              </div>
+              <a
+                className="btn btn-primary"
+                href="/aloqa"
+                onClick={(e) => navigate(e, "/aloqa")}
+              >
+                Biz bilan bog‘lanish →
+              </a>
+            </section>
+          </>
+        )}
         {page === "/imkoniyatlar" && (
           <section className="section wrap" id="features">
             <div className="section-heading">
