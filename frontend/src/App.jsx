@@ -379,7 +379,16 @@ function App() {
                 platformada.
               </p>
               <div className="hero-actions">
-                <a className="btn btn-primary" href="#workspace">
+<a
+  className="btn btn-primary"
+  href="#workspace"
+  onClick={(e) => {
+    e.preventDefault();
+    document.getElementById("workspace")?.scrollIntoView({
+      behavior: "smooth"
+    });
+  }}
+>
                   Platformani sinash <span>→</span>
                 </a>
                 <a className="btn btn-soft" href="#features">
