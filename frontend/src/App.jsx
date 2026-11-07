@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+import EmailVerification from "./EmailVerification";
+
+const API = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4000/api" : "/api");
 const tabs = [
   {
     id: "lost",
@@ -72,15 +74,20 @@ const features = [
 ];
 async function request(path, { token, ...options } = {}) {
   const res = await fetch(`${API}${path}`, {
+    signal: AbortSignal.timeout(20000),
     ...options,
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
-  });
+  }).catch(() => { throw new Error("Server bilan bog'lanib bo'lmadi. Internetni tekshirib, qayta urinib ko'ring."); });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || "So‘rov bajarilmadi.");
+  if (!res.ok) {
+    const error = new Error(data.error || "So'rov bajarilmadi.");
+    error.status = res.status; error.retryAfter = data.retryAfter;
+    throw error;
+  }
   return data;
 }
 function App() {
@@ -112,6 +119,7 @@ function App() {
       return null;
     }
   });
+  const [pendingVerification, setPendingVerification] = useState(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [formOpen, setFormOpen] = useState(false);
@@ -154,6 +162,24 @@ function App() {
       .catch(() => {});
   }, [notice]);
 
+  function finishAuth(data) {
+    setToken(data.token); setUser(data.user);
+    localStorage.setItem("mh_token", data.token);
+    localStorage.setItem("mh_user", JSON.stringify(data.user));
+    setPendingVerification(null); setAuthOpen(false); setError("");
+    setNotice(data.message || `Xush kelibsiz, ${data.user.name}!`);
+  }
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    request("/auth/me", { token }).then(data => { if (active) setUser(data.user); }).catch(e => {
+      if (active && (e.status === 401 || e.status === 403)) {
+        setToken(""); setUser(null); localStorage.removeItem("mh_token"); localStorage.removeItem("mh_user");
+        setAuthMode("login"); setAuthOpen(true); setError(e.message);
+      }
+    });
+    return () => { active = false; };
+  }, [token]);
   async function handleAuth(e) {
     e.preventDefault();
     setBusy(true);
@@ -169,12 +195,10 @@ function App() {
           className: fd.get("className"),
         }),
       });
-      setToken(data.token);
-      setUser(data.user);
-      localStorage.setItem("mh_token", data.token);
-      localStorage.setItem("mh_user", JSON.stringify(data.user));
-      setAuthOpen(false);
-      setNotice(`Xush kelibsiz, ${data.user.name}!`);
+      if (data.verificationRequired) {
+        localStorage.removeItem("mh_token"); localStorage.removeItem("mh_user");
+        setToken(""); setUser(null); setPendingVerification(data); setAuthOpen(true);
+      } else finishAuth(data);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -395,7 +419,7 @@ function App() {
               <div className="preview-head">
                 <div className="brand">
                   <span className="brand-mark">MH</span>
-                  <b>Maktab Hub</b>
+                  <b>MaktabHub</b>
                 </div>
                 <span className="live-tag">● Platforma</span>
               </div>
@@ -425,7 +449,7 @@ function App() {
           <>
             <section className="section wrap mh-extra">
               <div className="section-heading">
-                <span className="kicker">MAKTAB HUB 2.0</span>
+                <span className="kicker">MAKTABHUB 2.0</span>
                 <h2>Bir platforma, ko‘plab imkoniyatlar</h2>
                 <p>
                   Maktabdagi kundalik hayotni yanada qulay va tartibli qilish
@@ -551,7 +575,7 @@ function App() {
               <span className="kicker">IMKONIYATLAR</span>
               <h2>Maktab uchun kerakli hamma narsa</h2>
               <p>
-                Maktab Hub baho va davomatni takrorlamaydi. U o‘quvchilar
+                MaktabHub baho va davomatni takrorlamaydi. U o‘quvchilar
                 hamjamiyati va maktab hayotini qulaylashtirishga xizmat qiladi.
               </p>
             </div>
@@ -606,7 +630,7 @@ function App() {
           <section className="section wrap" id="workspace">
             <div className="section-heading">
               <span className="kicker">INTERAKTIV PLATFORMА</span>
-              <h2>Maktab Hub’ni sinab ko‘ring</h2>
+              <h2>MaktabHub’ni sinab ko‘ring</h2>
               <p>
                 Backend yoqilgan bo‘lsa, e’lonlar serverga saqlanadi. Hozircha
                 namunaviy ma’lumotlar ham ko‘rsatiladi.
@@ -812,7 +836,7 @@ function App() {
                 <span className="kicker">KEYINGI QADAM</span>
                 <h2>Maktabingizni yanada faol qilamiz.</h2>
                 <p>
-                  Maktab Hub’ni kichik sinov guruhida ishga tushirib,
+                  MaktabHub’ni kichik sinov guruhida ishga tushirib,
                   o‘quvchilar fikri asosida rivojlantiramiz.
                 </p>
               </div>
@@ -857,7 +881,7 @@ function App() {
           </span>
         </a>
         <span>
-          © {new Date().getFullYear()} Maktab Hub · Maktab hayoti bir joyda.
+          © {new Date().getFullYear()} MaktabHub · Maktab hayoti bir joyda.
         </span>
         <a href="#home">Yuqoriga ↑</a>
       </footer>
@@ -868,10 +892,11 @@ function App() {
             if (e.target === e.currentTarget) setAuthOpen(false);
           }}
         >
-          <div className="modal">
+          <div className="modal" role="dialog" aria-modal="true" aria-label="MaktabHub akkaunti">
+            {pendingVerification ? <EmailVerification pending={pendingVerification} request={request} onVerified={finishAuth} onBack={() => { setPendingVerification(null); setAuthMode("login"); setError(""); }} /> : <>
             <div className="modal-title">
               <div>
-                <span className="kicker">MAKTAB HUB</span>
+                <span className="kicker">MAKTABHUB</span>
                 <h2>
                   {authMode === "login"
                     ? "Akkauntga kirish"
@@ -882,6 +907,7 @@ function App() {
                 ✕
               </button>
             </div>
+            {error && <div className="notice error" role="alert">{error}</div>}
             <form onSubmit={handleAuth} className="auth-form">
               {authMode === "register" && (
                 <>
@@ -940,6 +966,7 @@ function App() {
               Demo loyihada haqiqiy shaxsiy ma’lumotlarni kiritmang. Sayt maktab
               tomonidan rasmiy tasdiqlanmagan.
             </p>
+            </>}
           </div>
         </div>
       )}

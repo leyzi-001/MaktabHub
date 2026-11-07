@@ -1,3 +1,7 @@
+## Email verification
+
+See [the complete email OTP setup guide](docs/EMAIL_VERIFICATION.md) for the SQL migration, Supabase email template/settings, local configuration, Vercel deployment and file placement.
+
 # Maktab Hub — Full-stack loyiha
 
 Ushbu loyiha taqdim etilgan **Maktab Hub** konsepsiyasiga asoslangan: topilgan/yo‘qolgan buyumlar, klublar va tadbirlar, bilim almashish, kitob almashinuvi, anonim takliflar va maktab joylari.
